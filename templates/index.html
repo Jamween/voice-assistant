@@ -3,19 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <title>AI Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #chat-box {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        input, button {
+            font-size: 1rem;
+            padding: 8px;
+            margin-right: 5px;
+        }
+    </style>
 </head>
 <body>
     <h1>AI Assistant</h1>
-    <input type="text" id="input" placeholder="Type your message...">
-    <button onclick="sendMessage()">Send</button>
+
+    <!-- Chat display box -->
     <div id="chat-box"></div>
 
-    <script>
-        async function sendMessage() {
-            const input = document.getElementById("input");
-            const message = input.value;
-            input.value = "";
+    <!-- Text input and controls -->
+    <input type="text" id="input" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="startVoiceRecognition()">🎤 Speak</button>
 
+    <script>
+        /**
+         * Sends a message (typed or voice) to the Flask backend
+         */
+        async function sendMessage(message = null) {
+            const input = document.getElementById("input");
+            const chatBox = document.getElementById("chat-box");
+
+            if (!message) {
+                message = input.value;
+                input.value = "";
+            }
+
+            // Display user's message
+            chatBox.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
+
+            // Send to backend
             const res = await fetch("/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -23,9 +58,34 @@
             });
 
             const data = await res.json();
-            const box = document.getElementById("chat-box");
-            box.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
-            box.innerHTML += `<p><strong>Assistant:</strong> ${data.reply}</p>`;
+
+            // Display assistant's reply
+            chatBox.innerHTML += `<p><strong>Assistant:</strong> ${data.reply}</p>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        /**
+         * Captures voice input using the Web Speech API and sends it
+         */
+        function startVoiceRecognition() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-US";
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                console.log("Listening...");
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                sendMessage(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                alert("Voice recognition error: " + event.error);
+            };
+
+            recognition.start();
         }
     </script>
 </body>
