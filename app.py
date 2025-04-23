@@ -1,13 +1,16 @@
 from flask import Flask, render_template, request, jsonify
 import openai
-import pyttsx3  # For text-to-speech
-import threading  # To avoid run loop issues
+import pyttsx3
+import threading
+import assistant  # Personal assistant commands
+
 # Initialize Flask
 app = Flask(__name__)
-# OpenAI API Key
-openai_api_key = "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"
 
-# Speak in a background thread to avoid 'run loop already started' error
+# OpenAI API Key
+openai_api_key = "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" 
+
+# Text-to-speech function (threaded for stability)
 def speak(text):
     def speak_thread(text):
         engine = pyttsx3.init()
@@ -15,14 +18,23 @@ def speak(text):
         engine.runAndWait()
     threading.Thread(target=speak_thread, args=(text,)).start()
 
+# Home route to render UI
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# Chat route to handle user messages
 @app.route('/chat', methods=['POST'])
 def chat():
     user_input = request.json['message']
 
+    # Check for personal assistant command first
+    personal_response = assistant.personal_assistant(user_input)
+    if personal_response:
+        speak(personal_response)
+        return jsonify({'reply': personal_response})
+
+    # Fallback to OpenAI GPT-4 if no command matches
     try:
         client = openai.OpenAI(api_key=openai_api_key)
         response = client.chat.completions.create(
@@ -36,7 +48,7 @@ def chat():
     except Exception as e:
         reply = f"Error: {e}"
 
-    speak(reply)  # Assistant speaks the reply
+    speak(reply)
     return jsonify({'reply': reply})
 
 if __name__ == '__main__':
