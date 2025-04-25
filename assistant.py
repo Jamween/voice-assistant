@@ -18,6 +18,7 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
 def get_weather_wttr(city):
     """
     Fetches current weather for a given city using wttr.in service.
+    No API key required.
     """
     try:
         url = f"https://wttr.in/{city}?format=3"
@@ -33,7 +34,7 @@ def get_weather_wttr(city):
 def personal_assistant(user_input):
     """
     Handles personal assistant voice/text commands before falling back to OpenAI GPT.
-    Includes system actions, web actions, Spotify controls, and weather information.
+    Includes system actions, web actions, Spotify controls, weather info, and translations.
     """
     user_input = user_input.lower()
 
@@ -46,12 +47,25 @@ def personal_assistant(user_input):
         city = user_input.split("what's the weather in")[-1].strip()
         return get_weather_wttr(city)
 
+    # Translation command
+    if "translate" in user_input and "into" in user_input:
+        try:
+            translator = Translator()
+            parts = user_input.split("translate")[1].strip().split("into")
+            phrase = parts[0].strip()
+            target_language = parts[1].strip()
+
+            translated = translator.translate(phrase, dest=target_language.lower())
+            return f"The translation is: {translated.text}"
+        except Exception:
+            return "Sorry, I couldn't translate that."
+
     # Open YouTube
     if "open youtube" in user_input:
         webbrowser.open("https://www.youtube.com")
         return "Opening YouTube."
 
-    # Search Google
+    # Google Search
     if "search google for" in user_input:
         query = user_input.split("search google for")[-1].strip()
         webbrowser.open(f"https://www.google.com/search?q={query}")
@@ -66,7 +80,7 @@ def personal_assistant(user_input):
         today = datetime.datetime.now().strftime("%A, %B %d, %Y")
         return f"Today is {today}."
 
-    # Open Notepad (for Windows)
+    # Open Notepad
     if "open notepad" in user_input:
         subprocess.Popen(["notepad.exe"])
         return "Opening Notepad."
