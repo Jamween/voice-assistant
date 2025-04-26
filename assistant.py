@@ -100,6 +100,27 @@ def personal_assistant(user_input):
         query = user_input.split("search google for")[-1].strip()
         webbrowser.open(f"https://www.google.com/search?q={query}")
         return f"Searching Google for {query}."
+    
+        # Smart Website Search
+    if "search youtube for" in user_input:
+        query = user_input.split("search youtube for")[-1].strip().replace(" ", "+")
+        webbrowser.open(f"https://www.youtube.com/results?search_query={query}")
+        return f"Searching YouTube for {query.replace('+', ' ')}."
+
+    if "search google for" in user_input:
+        query = user_input.split("search google for")[-1].strip().replace(" ", "+")
+        webbrowser.open(f"https://www.google.com/search?q={query}")
+        return f"Searching Google for {query.replace('+', ' ')}."
+
+    if "search amazon for" in user_input:
+        query = user_input.split("search amazon for")[-1].strip().replace(" ", "+")
+        webbrowser.open(f"https://www.amazon.ie/s?k={query}")
+        return f"Searching Amazon for {query.replace('+', ' ')}."
+
+    if "search wikipedia for" in user_input:
+        query = user_input.split("search wikipedia for")[-1].strip().replace(" ", "_")
+        webbrowser.open(f"https://en.wikipedia.org/wiki/{query}")
+        return f"Searching Wikipedia for {query.replace('_', ' ')}."
 
     # Time and Date
     if "what time is it" in user_input or "tell me the time" in user_input:
