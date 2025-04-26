@@ -3,6 +3,7 @@ import datetime
 import subprocess
 import spotipy
 import requests
+import os
 from spotipy.oauth2 import SpotifyOAuth
 
 
@@ -29,6 +30,32 @@ def get_weather_wttr(city):
 # Main personal assistant function
 def personal_assistant(user_input):
     user_input = user_input.lower()
+
+        # Take a note
+    if "take a note" in user_input:
+        try:
+            note = user_input.split("take a note")[-1].strip()
+            with open("notes.txt", "a") as file:
+                file.write(note + "\n")
+            return "Note saved."
+        except Exception:
+            return "Sorry, I couldn't save your note."
+
+    # Read notes
+    if "read my notes" in user_input or "show my notes" in user_input:
+        try:
+            if os.path.exists("notes.txt"):
+                with open("notes.txt", "r") as file:
+                    notes = file.readlines()
+                if notes:
+                    return "Here are your notes: " + " ".join(notes)
+                else:
+                    return "You have no notes yet."
+            else:
+                return "You have no notes yet."
+        except Exception:
+            return "Sorry, I couldn't read your notes."
+
 
     # Google Maps directions
     if "get directions from" in user_input and "to" in user_input:
