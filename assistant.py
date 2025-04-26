@@ -14,12 +14,8 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
     scope="user-read-playback-state user-modify-playback-state user-read-currently-playing"
 ))
 
-# Function to get live weather using wttr.in
+# Get live weather using wttr.in
 def get_weather_wttr(city):
-    """
-    Fetches current weather for a given city using wttr.in service.
-    No API key required.
-    """
     try:
         url = f"https://wttr.in/{city}?format=3"
         response = requests.get(url)
@@ -32,13 +28,21 @@ def get_weather_wttr(city):
 
 # Main personal assistant function
 def personal_assistant(user_input):
-    """
-    Handles personal assistant voice/text commands before falling back to OpenAI GPT.
-    Includes system actions, web actions, Spotify controls, weather info, and translations.
-    """
     user_input = user_input.lower()
 
-    # Weather lookup
+    # Google Maps directions
+    if "get directions from" in user_input and "to" in user_input:
+        try:
+            parts = user_input.split("get directions from")[1].strip().split("to")
+            origin = parts[0].strip().replace(" ", "+")
+            destination = parts[1].strip().replace(" ", "+")
+            url = f"https://www.google.com/maps/dir/{origin}/{destination}"
+            webbrowser.open(url)
+            return f"Getting directions from {origin.replace('+', ' ')} to {destination.replace('+', ' ')}."
+        except Exception:
+            return "Sorry, I couldn't get the directions. Please try again."
+
+    # Weather
     if "weather in" in user_input:
         city = user_input.split("weather in")[-1].strip()
         return get_weather_wttr(city)
@@ -47,14 +51,13 @@ def personal_assistant(user_input):
         city = user_input.split("what's the weather in")[-1].strip()
         return get_weather_wttr(city)
 
-    # Translation command
+    # Translation
     if "translate" in user_input and "into" in user_input:
         try:
             translator = Translator()
             parts = user_input.split("translate")[1].strip().split("into")
             phrase = parts[0].strip()
             target_language = parts[1].strip()
-
             translated = translator.translate(phrase, dest=target_language.lower())
             return f"The translation is: {translated.text}"
         except Exception:
@@ -65,7 +68,7 @@ def personal_assistant(user_input):
         webbrowser.open("https://www.youtube.com")
         return "Opening YouTube."
 
-    # Google Search
+    # Google search
     if "search google for" in user_input:
         query = user_input.split("search google for")[-1].strip()
         webbrowser.open(f"https://www.google.com/search?q={query}")
@@ -80,7 +83,7 @@ def personal_assistant(user_input):
         today = datetime.datetime.now().strftime("%A, %B %d, %Y")
         return f"Today is {today}."
 
-    # Open Notepad
+    # Open Notepad (Windows)
     if "open notepad" in user_input:
         subprocess.Popen(["notepad.exe"])
         return "Opening Notepad."
@@ -112,4 +115,4 @@ def personal_assistant(user_input):
         else:
             return "I couldn't find that on Spotify."
 
-    return None  # Return None if no personal command matches
+    return None  # No matching personal command

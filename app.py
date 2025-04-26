@@ -18,26 +18,34 @@ def speak(text):
         engine.runAndWait()
     threading.Thread(target=speak_thread, args=(text,)).start()
 
-# Route for the homepage
+# Text-to-speech function (runs in separate thread)
+def speak(text):
+    def speak_thread(text):
+        engine = pyttsx3.init()
+        engine.say(text)
+        engine.runAndWait()
+    threading.Thread(target=speak_thread, args=(text,)).start()
+
+# Home route
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Route to handle incoming chat messages
+# Chat route
 @app.route('/chat', methods=['POST'])
 def chat():
     user_input = request.json['message']
 
-    # Check for personal assistant command
+    # Check for personal assistant command first
     personal_response = assistant.personal_assistant(user_input)
     if personal_response:
         speak(personal_response)
         return jsonify({'reply': personal_response})
 
-    # Otherwise, call OpenAI GPT-4
+    # Otherwise fallback to OpenAI GPT-4
     try:
-        openai.api_key = openai_api_key  
-        response = openai.ChatCompletion.create( 
+        openai.api_key = openai_api_key  # Set the API key
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
@@ -51,6 +59,6 @@ def chat():
     speak(reply)
     return jsonify({'reply': reply})
 
-# Run the app
+# Run app
 if __name__ == '__main__':
     app.run(debug=True)

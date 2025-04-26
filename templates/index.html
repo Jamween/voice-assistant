@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Assistant</title>
+    <title>AI Voice Assistant</title>
     <style>
         body {
             font-family: Arial, sans-serif;
         }
-
         #chat-box {
             height: 300px;
             overflow-y: auto;
@@ -15,7 +14,6 @@
             padding: 10px;
             margin-bottom: 10px;
         }
-
         input, button {
             font-size: 1rem;
             padding: 8px;
@@ -24,45 +22,37 @@
     </style>
 </head>
 <body>
-    <h1>AI Assistant</h1>
+    <h1>AI Voice Assistant</h1>
 
-    <!-- Container for showing conversation history -->
     <div id="chat-box"></div>
 
-    <!-- Input box and buttons for typing and speaking -->
     <input type="text" id="input" placeholder="Type your message...">
     <button onclick="sendMessage()">Send</button>
     <button onclick="startVoiceRecognition()">🎤 Speak</button>
 
     <script>
-        // Function to send user input to the backend
         async function sendMessage(message = null) {
             const input = document.getElementById("input");
             const chatBox = document.getElementById("chat-box");
 
-            // Use typed input if no message was passed
             if (!message) {
                 message = input.value;
                 input.value = "";
             }
 
-            // Show user message in the chat box
             chatBox.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
 
-            // Send the message to Flask backend
             const res = await fetch("/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message })
             });
 
-            // Show the assistant's response
             const data = await res.json();
             chatBox.innerHTML += `<p><strong>Assistant:</strong> ${data.reply}</p>`;
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Function to start voice recognition using the browser's API
         function startVoiceRecognition() {
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = "en-US";
